@@ -159,16 +159,24 @@ plot(knnFit)
 
 # Cross validation on test data
 # Seems we want less neighbors
-knnPredict <- predict(knnFit,newdata = test)
+knnPredict <- predict(knnFit, newdata = test)
 #Get the confusion matrix to see accuracy value and other parameter values
 # Accuracy is about 82% for midfielders and attackers on test data
 confusionMatrix(knnPredict, factor(test$unit))
 
 # Get the confusion matrix for the full data
-fin_data$knn_pred <- predict(knnFit,newdata = fin_data)
+fin_data$knn_pred <- predict(knnFit, newdata = fin_data)
 confusionMatrix(fin_data$knn_pred, factor(fin_data$unit))
 
 # Save the model
 saveRDS(knnFit, "git/football-project/tactical-model.RDS")
+
+# Create csv with model data and prediction results -------------------------------------------------------------------------------------------
+fin_data$correct_pred <- ifelse(fin_data$unit == fin_data$knn_pred, 1, 0)
+fin_data <- player_data %>% 
+  mutate(player = paste(first_name, last_name)) %>%
+  dplyr::select(match_id, trackable_object, club_name, player) %>%  
+  inner_join(fin_data, by = c("match_id", "trackable_object"))
+write.csv(fin_data, "git/football-project/model-results.csv", row.names = F)
 
 
